@@ -14,7 +14,7 @@ class Game:
 
             #event
             for event in pygame.event.get():
-                if event == pygame.QUIT:
+                if event.type == pygame.QUIT:
                     self.running = False
 
             #update
@@ -24,5 +24,6 @@ class Game:
 
         pygame.quit()
 
-game = Game()
-game.run()
+if __name__ == '__main__':
+    game = Game()
+    game.run()
