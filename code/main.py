@@ -12,12 +12,16 @@ class Game:
         self.setup(self.tmx_maps['world'], 'house')
 
     def import_assets(self):
-        self.tmx_maps = {'world': load_pygame(join('Unesco-game-2026', 'data','maps','test.tmx'))}
+        self.tmx_maps = {'world': load_pygame(join('Unesco-game-2026', 'data','maps','world.tmx'))}
         print(self.tmx_maps)
 
     def setup(self, tmx_map, player_start_pos):
         for x,y, surf in tmx_map.get_layer_by_name('Terrain').tiles():
             print(x,y,surf)
+
+        for obj in tmx_map.get_layer_by_name('Entities'):
+            if obj.name == "player" and obj.properties['pos'] == 'player_start_pos':
+                Player((obj.x, obj.y), self.all_sprites)
 
     def run(self):
         while True:
