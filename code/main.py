@@ -19,13 +19,24 @@ class Game:
         self.setup(self.tmx_maps['world'], 'house')
 
     def import_assets(self):
-        self.tmx_maps = {'world': load_pygame(join('Unesco-game-2026', 'data','maps','world.tmx'))}
+        self.tmx_maps = {
+            'world': load_pygame(join('Unesco-game-2026', 'data','maps','world.tmx')),
+            'house': load_pygame(join('Unesco-game-2026', 'data','maps','house.tmx'))
+            }
+
         print(self.tmx_maps)
 
     def setup(self, tmx_map, player_start_pos):
-        for x,y, surf in tmx_map.get_layer_by_name('Terrain').tiles():
-           Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
+        # terrain
+        for layer in ['Terrain', 'Terrain Top']:
+            for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
+                Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
 
+        # objects
+        for obj in tmx_map.get_layer_by_name('Objects'):
+            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
+
+        # entities
         for obj in tmx_map.get_layer_by_name('Entities'):
             if obj.name == 'player' and obj.properties['pos'] == player_start_pos:
                 self.player = Player((obj.x, obj.y), self.all_sprites)
@@ -41,6 +52,7 @@ class Game:
 
             #game logic
             self.all_sprites.update(dt)
+            self.display_surf.fill('black')
             self.all_sprites.draw(self.player.rect.center)
             pygame.display.update() # update display
 
