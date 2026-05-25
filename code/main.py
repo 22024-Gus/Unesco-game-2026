@@ -2,7 +2,7 @@ from settings import * # importing variables, constants, etc. from settings.py
 from pytmx.util_pygame import load_pygame
 from os.path import join
 
-from sprites import Sprite
+from sprites import Sprite, Button
 from groups import AllSprites
 
 
@@ -15,8 +15,14 @@ class Game:
 
         self.all_sprites = AllSprites()
 
+        self.font = pygame.font.Font(None,30)
+
         self.import_assets()
-        self.setup(self.tmx_maps['nz'], 'camera_pos')
+        self.setup(self.tmx_maps['nz'])
+
+        
+        self.testbutton = Button('yo', 100, 100, (30,670), self.font)
+        
 
     def import_assets(self):
         self.tmx_maps = {
@@ -25,7 +31,7 @@ class Game:
 
         print(self.tmx_maps)
 
-    def setup(self, tmx_map, camera_pos):
+    def setup(self, tmx_map):
         # terrain
         for layer in ['Terrain', 'Terrain Top']:
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
@@ -52,7 +58,9 @@ class Game:
             self.all_sprites.update(dt)
             self.display_surf.fill('black')
             self.all_sprites.draw()
+            self.testbutton.draw(self.display_surf)
             pygame.display.update() # update display
+
 
 if __name__ == '__main__': # initialise game (failsafe; checks if this file is called main)
     game = Game()
