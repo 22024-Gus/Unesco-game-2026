@@ -20,8 +20,7 @@ class Game:
         self.import_assets()
         self.setup(self.tmx_maps['nz'])
 
-        
-        self.testbutton = Button('yo', 100, 100, (30,670), self.font)
+        self.testbutton = Button('tower type','yo', 100, 100, (30,670), self.font)
         
 
     def import_assets(self):
@@ -33,7 +32,7 @@ class Game:
 
     def setup(self, tmx_map):
         # terrain
-        for layer in ['Terrain', 'Terrain Top']:
+        for layer in ['Terrain', 'Path', 'Terrain Top']:
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
 
@@ -53,12 +52,21 @@ class Game:
                 if event.type == pygame.QUIT: # if player closes main window:
                     pygame.quit() # quit the game
                     exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3:
+                        placing = False
+                        print(f'cancel press: {placing}')
 
             #game logic
             self.all_sprites.update(dt)
             self.display_surf.fill('black')
             self.all_sprites.draw()
+            #buttons
             self.testbutton.draw(self.display_surf)
+
+
+
+            
             pygame.display.update() # update display
 
 
