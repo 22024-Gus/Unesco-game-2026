@@ -7,7 +7,7 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(topleft = pos)
 
 class Button:
-    def __init__(self, tower_type, text, wid, hgt, pos, font):
+    def __init__(self, tower_type, text, wid, hgt, pos, font, action):
         self.pressed = False
 
         # main button
@@ -19,6 +19,7 @@ class Button:
         self.text_rect = self.text_surf.get_rect(center = self.rect.center)
 
         self.tower_type = tower_type
+        self.action = action
     
     def draw(self, display):
         pygame.draw.rect(display, self.colour, self.rect)
@@ -32,21 +33,31 @@ class Button:
                 self.pressed = True
             else:
                 if self.pressed == True:
-                    placing = True
-                    selected_tower = self.tower_type
-                    print(placing, selected_tower)
+                    self.action(self.tower_type)
                     self.pressed = False
+        else:
+            if not pygame.mouse.get_pressed()[0]:
+                self.pressed = False
 
-class Tower:
+class Tower(pygame.sprite.Sprite):
     def __init__(self, pos, surf, groups):
-        super.__init__(groups)
+        super().__init__(groups)
         self.image = surf
         
-        # Snap the tower directly to the Tiled grid pixels
-        # (grid_pos is a tuple like (5, 3))
         pixel_x = pos[0] * TILE_SIZE
         pixel_y = pos[1] * TILE_SIZE
         
         self.rect = self.image.get_frect(topleft = (pixel_x, pixel_y))
         
         # Add tower logic stats here later (range, damage, cooldown))
+    
+    def update(self):
+        pass
+
+    def hover(self):
+        mouse_pos = pygame.mouse.get_pos()
+
+        grid_x = mouse_pos[0] // TILE_SIZE
+        grid_y = mouse_pos[1] // TILE_SIZE
+
+        return (grid_x, grid_y)

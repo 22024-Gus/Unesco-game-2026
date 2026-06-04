@@ -4,10 +4,6 @@ from sys import exit
 
 WIN_WID, WIN_HGT = 960,800
 TILE_SIZE = 32
-placing = False
-
-selected_tower = None
-placed_towers = []
 
 COLOURS = { 
     'white': '#f4fefa',
