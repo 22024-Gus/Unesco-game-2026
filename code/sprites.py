@@ -51,13 +51,5 @@ class Tower(pygame.sprite.Sprite):
         
         # Add tower logic stats here later (range, damage, cooldown))
     
-    def update(self):
+    def update(self, dt):
         pass
-
-    def hover(self):
-        mouse_pos = pygame.mouse.get_pos()
-
-        grid_x = mouse_pos[0] // TILE_SIZE
-        grid_y = mouse_pos[1] // TILE_SIZE
-
-        return (grid_x, grid_y)
