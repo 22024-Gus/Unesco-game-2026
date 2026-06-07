@@ -21,3 +21,9 @@ WORLD_LAYERS = {
     'main': 3,
     'top': 4,    
 }
+
+tower_rules = {
+    'timothy chalamet': {'land_ok': True, 'water_ok': False, 'snow_ok': False},
+    'albert einstein': {'land_ok': True, 'water_ok': False, 'snow_ok': True},
+    'nikola tesla': {'land_ok': True, 'water_ok': True, 'snow_ok': False}
+}

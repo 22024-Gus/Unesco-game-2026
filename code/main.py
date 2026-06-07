@@ -1,5 +1,5 @@
-from settings import * # importing variables, constants, etc. from settings.py
-from pytmx.util_pygame import load_pygame
+from settings import * #importing variables, constants, etc. from settings.py
+from pytmx.util_pygame import load_pygame #
 from os.path import join
 
 from sprites import Sprite, Button, Tower
@@ -8,8 +8,8 @@ from groups import AllSprites
 class Game:
     def __init__(self):
         pygame.init()
-        self.display_surf = pygame.display.set_mode((WIN_WID, WIN_HGT)) # setting resolution of window
-        pygame.display.set_caption('epic game') # sets caption of game window
+        self.display_surf = pygame.display.set_mode((WIN_WID, WIN_HGT)) #setting resolution of window
+        pygame.display.set_caption('epic game') #sets caption of game window
         self.clock = pygame.time.Clock() #start game clock
 
         self.all_sprites = AllSprites() #sprite group for updating (see groups.py)
@@ -24,8 +24,9 @@ class Game:
         self.setup(self.tmx_maps['nz'])
 
         self.ui_buttons = [
-            Button('basic tower','yo', 100, 100, (30,670), self.font, self.placement),
-            Button('einstein tower','yo', 100, 100, (160,670), self.font, self.placement)
+            Button('chalamet tower','yo chalamet', 100, 100, (30,670), self.font, self.placement),
+            Button('einstein tower','yo einstein', 100, 100, (160,670), self.font, self.placement),
+            Button('tesla tower','yo nikola', 100, 100, (290,670), self.font, self.placement)
         ]
         
         
@@ -34,7 +35,12 @@ class Game:
         self.tower_type = tower_type
     
         self.active_tower_surf = self.tower_preview_surf #from import_assets
-        print(f"Placing mode active for: {tower_type} (Can swim: )")
+
+        walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
+        waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
+        snowable = tower_rules.get(tower_type, {}).get('snow_ok', False) #fetch rule for if tower can be placed on snow
+
+        print(f"Placing mode active for {tower_type} [can walk: {walkable} | can swim: {waterable} | can snow: {snowable} ]")
 
 
     def import_assets(self):
@@ -49,12 +55,12 @@ class Game:
         self.tower_preview_surf.set_alpha(150) #set transparency of tower preview
 
     def setup(self, tmx_map):
-        # terrain
+        #terrain
         for layer in ['Terrain', 'Water', 'Path', 'Terrain Top']:
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
 
-        # objects
+        #objects
         for obj in tmx_map.get_layer_by_name('Objects'):
             Sprite((obj.x, obj.y), obj.image, self.all_sprites)
 
@@ -66,12 +72,12 @@ class Game:
         while True:
             dt = self.clock.tick() / 1000
             #event loop
-            for event in pygame.event.get(): # check for pygame events
-                if event.type == pygame.QUIT: # if player closes main window:
-                    pygame.quit() # quit the game
+            for event in pygame.event.get(): #check for pygame events
+                if event.type == pygame.QUIT: #if player closes main window:
+                    pygame.quit() #quit the game
                     exit()
 
-                if event.type == pygame.MOUSEBUTTONDOWN: # if player presses a mouse button
+                if event.type == pygame.MOUSEBUTTONDOWN: #if player presses a mouse button
 
                     if event.button == 3: #if its right mb
                         self.placing_tower = False
@@ -110,10 +116,10 @@ class Game:
 
 
             
-            pygame.display.update() # update display
+            pygame.display.update() #update display
 
 
-if __name__ == '__main__': # initialise game (failsafe; checks if this file is called main)
+if __name__ == '__main__': #initialise game (failsafe; checks if this file is called main)
     game = Game()
     game.run()  
 
@@ -128,15 +134,15 @@ if __name__ == '__main__': # initialise game (failsafe; checks if this file is c
         self.tower_type = tower_type
         self.active_tower_surf = self.tower_preview_surf  
 
-        # Define custom rules for each tower type
-        # 'water_ok': True means it can only/also go on water
+        #Define custom rules for each tower type
+        #'water_ok': True means it can only/also go on water
         tower_rules = {
             'basic tower':    {'water_ok': False},
             'einstein tower': {'water_ok': False},
-            'sub marine':      {'water_ok': True} # Example of a future water tower
+            'sub marine':      {'water_ok': True} #Example of a future water tower
         }
 
-        # Safely fetch rules, defaulting to False if the type isn't listed yet
+        #Safely fetch rules, defaulting to False if the type isn't listed yet
         self.current_tower_can_swim = tower_rules.get(tower_type, {}).get('water_ok', False)
         
         print(f"Placing mode active for: {tower_type} (Can swim: {self.current_tower_can_swim})")
@@ -151,15 +157,15 @@ if __name__ == '__main__': # initialise game (failsafe; checks if this file is c
         grid_x = mouse_pos[0] // TILE_SIZE
         grid_y = mouse_pos[1] // TILE_SIZE
         
-        # Pull references to your layers
+        #Pull references to your layers
         path_layer = self.tmx_maps['nz'].get_layer_by_name('Path')
         water_layer = self.tmx_maps['nz'].get_layer_by_name('Water')
 
-        # Check if tiles exist at this coordinate (returns a surface or None)
+        #Check if tiles exist at this coordinate (returns a surface or None)
         has_path = path_layer.get_tile_image(grid_x, grid_y) is not None
         has_water = water_layer.get_tile_image(grid_x, grid_y) is not None
 
-        # --- VALIDATION LOGIC ---
+        #--- VALIDATION LOGIC ---
         is_allowed = True
 
         if has_path:
@@ -171,16 +177,16 @@ if __name__ == '__main__': # initialise game (failsafe; checks if this file is c
             print("This tower will drown! Land only.")
             
         elif not has_water and self.current_tower_can_swim:
-            # Optional: Remove this block if your water towers are allowed on land too!
+            #Optional: Remove this block if your water towers are allowed on land too!
             is_allowed = False 
             print("This is a water tower! Put it in the drink.")
 
-        # --- SPAWN TOWER ---
+        #--- SPAWN TOWER ---
         if is_allowed:
             snap_x = grid_x * TILE_SIZE
             snap_y = grid_y * TILE_SIZE
             
-            # Pass the profile data down to your Tower instance if it needs it later
+            #Pass the profile data down to your Tower instance if it needs it later
             Tower((snap_x, snap_y), self.active_tower_surf, self.all_sprites)
             self.placing_tower = False
     
