@@ -36,11 +36,13 @@ class Game:
     
         self.active_tower_surf = self.tower_preview_surf #from import_assets
 
-        walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
-        waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
-        snowable = tower_rules.get(tower_type, {}).get('snow_ok', False) #fetch rule for if tower can be placed on snow
+        self.walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
+        self.waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
+        self.snowable = tower_rules.get(tower_type, {}).get('snow_ok', False) #fetch rule for if tower can be placed on snow
 
-        print(f"Placing mode active for {tower_type} [can walk: {walkable} | can swim: {waterable} | can snow: {snowable} ]")
+        print(f"Placing mode active for {tower_type} [can walk: {self.walkable} | can swim: {self.waterable} | can snow: {self.snowable} ]")
+
+
 
 
     def import_assets(self):
@@ -56,7 +58,7 @@ class Game:
 
     def setup(self, tmx_map):
         #terrain
-        for layer in ['Terrain', 'Water', 'Path', 'Terrain Top']:
+        for layer in ['Terrain', 'Water', 'Path', 'Snow', 'Terrain Top']: # checks for 5 different layers, and creates tile sprites
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
 
@@ -90,7 +92,12 @@ class Game:
                             mouse_pos = pygame.mouse.get_pos()
                             grid_x = mouse_pos[0] // TILE_SIZE
                             grid_y = mouse_pos[1] // TILE_SIZE
-                            
+
+                            path_lyr = self.tmx_maps['nz'].get_layer_by_name('Path')
+                            path_idx = self.tmx_maps['nz'].layers.index(path_lyr)
+                            has_path = self.tmx_maps['nz'].get_tile_image(grid_x, grid_y, path_idx) is not None
+                            print(has_path) 
+
                             Tower((grid_x, grid_y), self.active_tower_surf, self.all_sprites)
                             self.placing_tower = False
 
@@ -100,12 +107,13 @@ class Game:
             self.all_sprites.draw()
 
             #ghost preview for towers
-            if self.placing_tower and self.active_tower_surf: #if placing & has surface
+            if self.placing_tower and self.active_tower_surf: #if placing & has surface & on correct surface
                 mouse_pos = pygame.mouse.get_pos()
                 clicked_on_ui = mouse_pos[1] >= 640
                 if not clicked_on_ui: #if it isnt ui
                     snap_x = (mouse_pos[0] // TILE_SIZE) * TILE_SIZE
                     snap_y = (mouse_pos[1] // TILE_SIZE) * TILE_SIZE
+                    #place tower for real
                     self.display_surf.blit(self.active_tower_surf, (snap_x, snap_y))
 
 
@@ -146,6 +154,8 @@ if __name__ == '__main__': #initialise game (failsafe; checks if this file is ca
         self.current_tower_can_swim = tower_rules.get(tower_type, {}).get('water_ok', False)
         
         print(f"Placing mode active for: {tower_type} (Can swim: {self.current_tower_can_swim})")
+
+
 
         if event.button == 1 and self.placing_tower:
     mouse_pos = pygame.mouse.get_pos()

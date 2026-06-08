@@ -14,13 +14,13 @@ COLOURS = {
                 
 }
 
-WORLD_LAYERS = {
+'''WORLD_LAYERS = {
     'water': 0,
     'bg': 1,
     'shadow': 2,
     'main': 3,
-    'top': 4,    
-}
+    'top': 4,
+}'''
 
 tower_rules = {
     'timothy chalamet': {'land_ok': True, 'water_ok': False, 'snow_ok': False},
