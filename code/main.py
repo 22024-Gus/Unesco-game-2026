@@ -24,33 +24,33 @@ class Game:
         self.setup(self.tmx_maps['nz'])
 
         self.ui_buttons = [
-            Button('chalamet tower','yo chalamet', 100, 100, (30,670), self.font, self.placement),
-            Button('einstein tower','yo einstein', 100, 100, (160,670), self.font, self.placement),
-            Button('tesla tower','yo nikola', 100, 100, (290,670), self.font, self.placement)
-        ]
-        
+            Button('timothy chalamet','yo chalamet', 100, 100, (30,670), self.font, self.placement),
+            Button('albert einstein','yo einstein', 100, 100, (160,670), self.font, self.placement),
+            Button('nikola tesla','yo nikola', 100, 100, (290,670), self.font, self.placement)
+        ]  
         
     def placement(self, tower_type): #gets triggered when clicked 
         self.placing_tower = True
         self.tower_type = tower_type
     
-        self.active_tower_surf = self.tower_preview_surf #from import_assets
+        self.active_tower_surf = self.tower_surfs[tower_type] #from import_assets (show image instead)
 
         self.walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
         self.waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
         self.snowable = tower_rules.get(tower_type, {}).get('snow_ok', False) #fetch rule for if tower can be placed on snow
 
-        print(f"Placing mode active for {tower_type} [can walk: {self.walkable} | can swim: {self.waterable} | can snow: {self.snowable} ]")
-
-
-
+        print(f"Placing mode active for {tower_type} [can walk: {self.walkable} | can swim: {self.waterable} | can snow: {self.snowable}]")
 
     def import_assets(self):
         self.tmx_maps = {
             'nz': load_pygame(join('Unesco-game-2026', 'data','maps','newzealand.tmx'))
             }
-
-        print(self.tmx_maps)
+        
+        self.tower_surfs = {
+            'timothy chalamet': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'chalamet.png')).convert_alpha(),
+            'albert einstein': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'einstein.png')).convert_alpha(),
+            'nikola tesla': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'tesla.png')).convert_alpha(),
+        }
 
         self.tower_preview_surf = pygame.Surface((TILE_SIZE, TILE_SIZE)) #set size of tower preview
         self.tower_preview_surf.fill((0, 0, 255)) #set tint of tower preview
@@ -89,17 +89,49 @@ class Game:
                         #double check it isnt ui
                         clicked_on_ui = mouse_pos[1] >= 640
                         if not clicked_on_ui: #if it isnt ui
+                            #calculate grid position
                             mouse_pos = pygame.mouse.get_pos()
                             grid_x = mouse_pos[0] // TILE_SIZE
                             grid_y = mouse_pos[1] // TILE_SIZE
 
-                            path_lyr = self.tmx_maps['nz'].get_layer_by_name('Path')
-                            path_idx = self.tmx_maps['nz'].layers.index(path_lyr)
-                            has_path = self.tmx_maps['nz'].get_tile_image(grid_x, grid_y, path_idx) is not None
-                            print(has_path) 
+                            self.tower_preview_rect = self.active_tower_surf.get_frect() #temporary rectangle to show where the tower wants to go
 
-                            Tower((grid_x, grid_y), self.active_tower_surf, self.all_sprites)
-                            self.placing_tower = False
+                            #map layers
+                            tmx_data = self.tmx_maps['nz']
+                            path_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Path'))
+                            land_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Terrain'))
+                            water_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Water'))
+                            snow_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Snow'))
+
+                            has_path = tmx_data.get_tile_image(grid_x, grid_y, path_idx) is not None
+                            has_land = tmx_data.get_tile_image(grid_x, grid_y, land_idx) is not None
+                            has_water = tmx_data.get_tile_image(grid_x, grid_y, water_idx) is not None
+                            has_snow = tmx_data.get_tile_image(grid_x, grid_y, snow_idx) is not None
+
+                            #check for grid occupation
+                            hasnt_tower = False
+                            for sprite in self.all_sprites:
+                                if isinstance(sprite, Tower) and sprite.rect.colliderect(self.tower_preview_rect):
+                                    hasnt_tower = True
+                                    print('theres something there')
+                                    break
+
+                            #validation
+                            can_place = True
+
+                            if hasnt_tower:
+                                can_place = False
+                            elif has_path:
+                                can_place = False
+                            elif has_water and not self.waterable:
+                                can_place = False
+                            elif has_snow and not self.snowable:
+                                can_place = False
+
+                            #place tower
+                            if can_place:
+                                Tower((grid_x, grid_y), self.active_tower_surf, self.all_sprites)
+                                self.placing_tower = False
 
             #game logic
             self.all_sprites.update(dt)
