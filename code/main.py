@@ -22,18 +22,40 @@ class Game:
 
         self.import_assets()
         self.setup(self.tmx_maps['nz'])
+        self.waypoints = self.get_path_waypoints(self.tmx_maps['nz'])
 
         self.ui_buttons = [
             Button('timothy chalamet','yo chalamet', 100, 100, (30,670), self.font, self.placement),
             Button('albert einstein','yo einstein', 100, 100, (160,670), self.font, self.placement),
             Button('nikola tesla','yo nikola', 100, 100, (290,670), self.font, self.placement)
         ]  
+
+    def get_path_waypoints(self, tmx_map):
+        rawpoints = []
+
+        for wypnt in tmx_map.get_layer_by_name('Path Points'):
+            try:
+                point_order = int(wypnt.name)
+            except (TypeError, ValueError):
+                point_order = 0
+                print(f"point at ({wypnt.x}, {wypnt.y}) is missing a numeric name")
+
+            rawpoints.append((point_order, (wypnt.x, wypnt.y)))
+        
+        rawpoints.sort() #sorts points in numeric order which is same as order they move
+        
+        #waypoints = [point[1] for points in rawpoints]
+
+        return rawpoints
+
         
     def placement(self, tower_type): #gets triggered when clicked 
         self.placing_tower = True
         self.tower_type = tower_type
     
         self.active_tower_surf = self.tower_surfs[tower_type] #from import_assets (show image instead)
+
+        self.tower_preview_rect = self.active_tower_surf.get_frect() #temporary rectangle to show where the tower wants to go
 
         self.walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
         self.waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
@@ -58,7 +80,7 @@ class Game:
 
     def setup(self, tmx_map):
         #terrain
-        for layer in ['Terrain', 'Water', 'Path', 'Snow', 'Terrain Top']: # checks for 5 different layers, and creates tile sprites
+        for layer in ['Terrain', 'Water', 'Snow', 'Path', 'Terrain Top']: # checks for 5 different layers, and creates tile sprites
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites)
 
@@ -90,11 +112,9 @@ class Game:
                         clicked_on_ui = mouse_pos[1] >= 640
                         if not clicked_on_ui: #if it isnt ui
                             #calculate grid position
-                            mouse_pos = pygame.mouse.get_pos()
+                            #mouse_pos = pygame.mouse.get_pos()
                             grid_x = mouse_pos[0] // TILE_SIZE
                             grid_y = mouse_pos[1] // TILE_SIZE
-
-                            self.tower_preview_rect = self.active_tower_surf.get_frect() #temporary rectangle to show where the tower wants to go
 
                             #map layers
                             tmx_data = self.tmx_maps['nz']
@@ -109,17 +129,19 @@ class Game:
                             has_snow = tmx_data.get_tile_image(grid_x, grid_y, snow_idx) is not None
 
                             #check for grid occupation
-                            hasnt_tower = False
+                            has_tower = False
                             for sprite in self.all_sprites:
-                                if isinstance(sprite, Tower) and sprite.rect.colliderect(self.tower_preview_rect):
-                                    hasnt_tower = True
-                                    print('theres something there')
-                                    break
+                                if isinstance(sprite, Tower):
+                                    print(f"Tower at: {sprite.rect.topleft} | Preview at: {self.tower_preview_rect.topleft}")
+                                    if sprite.rect.colliderect(self.tower_preview_rect):
+                                        has_tower = True
+                                        print('theres something there')
+                                        break
 
                             #validation
                             can_place = True
 
-                            if hasnt_tower:
+                            if has_tower:
                                 can_place = False
                             elif has_path:
                                 can_place = False
@@ -145,7 +167,10 @@ class Game:
                 if not clicked_on_ui: #if it isnt ui
                     snap_x = (mouse_pos[0] // TILE_SIZE) * TILE_SIZE
                     snap_y = (mouse_pos[1] // TILE_SIZE) * TILE_SIZE
-                    #place tower for real
+
+                    #update tower rect for collision detect
+                    self.tower_preview_rect.topleft = (snap_x, snap_y)
+                    #show tower for real
                     self.display_surf.blit(self.active_tower_surf, (snap_x, snap_y))
 
 
