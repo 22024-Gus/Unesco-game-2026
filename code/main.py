@@ -1,15 +1,15 @@
-from settings import * #importing variables, constants, etc. from settings.py
-from pytmx.util_pygame import load_pygame #
-from os.path import join
+from settings import * #importing variables, constants, etc. from settings.py ||| for next period: try to get visuals on attacks from towers, and range visual
+from pytmx.util_pygame import load_pygame #for the 
+from os.path import join #for importing images
 
-from sprites import Sprite, Button, Tower, Enemy
-from groups import AllSprites
+from sprites import Sprite, Button, Tower, Enemy #importing stuff from sprites.py
+from groups import AllSprites #importing from groups.py
 
 class Game:
     def __init__(self):
         pygame.init()
         self.display_surf = pygame.display.set_mode((WIN_WID, WIN_HGT)) #setting resolution of window
-        pygame.display.set_caption('epic game') #sets caption of game window
+        pygame.display.set_caption("epic game") #sets caption of game window
         self.clock = pygame.time.Clock() #start game clock
 
         self.all_sprites = AllSprites() #sprite group for updating (see groups.py)
@@ -20,33 +20,53 @@ class Game:
         self.active_tower_surf = None #graphic for hover/placement
 
         self.import_assets() #import assets for towers (and enemy, etc)
-        self.setup(self.tmx_maps['nz']) #setup the map
+        self.setup(self.tmx_maps["nz"]) #setup the map
 
         #wave attributes
-        self.waypoints = self.get_path_waypoints(self.tmx_maps['nz']) #gather waypoints
+        self.waypoints = self.get_path_waypoints(self.tmx_maps["nz"]) #gather waypoints
         self.current_wave_idx = 0 #start at wave 0 (dict start at 0, its named wave 1)
-        self.spawn_q = [] #spawn queue, spawn 'q' get it hahahah haha
+        self.spawn_q = [] #spawn queue, spawn "q" get it hahahah haha
         self.wave_active = False #track if running (for intermissions)
 
         #enemy attributes
-        self.enemy_spawn_timer = 0
+        self.enemy_spawn_timer = 0 #timer that resets when spawn
         self.spawn_cooldown = 1.5 #time (in secs) between enemy spawns
         
         self.font = pygame.font.Font(None,30) #create font for buttons
-        self.ui_buttons = [
-            Button('yo chalamet', 100, 100, (30,670), self.font, self.placement, 'timothy chalamet'),
-            Button('yo einstein', 100, 100, (160,670), self.font, self.placement, 'albert einstein'),
-            Button('yo nikola', 100, 100, (290,670), self.font, self.placement, 'nikola tesla'),
-            Button('start next wave', 100, 100, (770, 670), self.font, self.next_wave, None)
+        self.ui_buttons = [ #list of buttons
+
+            Button("yo chalamet", #label
+                    100, 100, (30,670), #size/position
+                    self.font, #font
+                    self.placement, #action
+                    "timothy chalamet"), #tower type (ignored if action != self.placement)
+
+            Button("yo einstein", 
+                    100, 100, (160,670), 
+                    self.font, 
+                    self.placement, 
+                    "albert einstein"),
+                    
+            Button("yo nikola", 
+                    100, 100, (290,670), 
+                    self.font, 
+                    self.placement, 
+                    "nikola tesla"),
+
+            Button("start next wave", 
+                    100, 100, (770, 670), 
+                    self.font, 
+                    self.next_wave, 
+                    None)
         ]  
 
-    def get_path_waypoints(self, tmx_map):
+    def get_path_waypoints(self, tmx_map): #imports waypoints for the enemy pathfinding system
         rawpoints = []
 
-        for wypnt in tmx_map.get_layer_by_name('Path Points'): #checks for objects in the path points layer
+        for wypnt in tmx_map.get_layer_by_name("Path Points"): #checks for objects in the path points layer
             try:
                 point_order = int(wypnt.name)
-            except (TypeError, ValueError): #if the name of the point isnt '0' or '11', etc.. then warn
+            except (TypeError, ValueError): #if the name of the point isnt "0" or "11", etc.. then warn
                 point_order = 0
                 print(f"point at ({wypnt.x}, {wypnt.y}) is missing a numeric name") #show which point is missing the name
 
@@ -61,7 +81,7 @@ class Game:
         return waypoints
 
         
-    def placement(self, tower_type): #gets triggered when clicked 
+    def placement(self, tower_type): #gets triggered when some buttons are clicked 
         self.placing_tower = True
         self.tower_type = tower_type
     
@@ -69,10 +89,11 @@ class Game:
 
         self.tower_rect = self.active_tower_surf.get_frect() #rectangle to show where the tower wants to go
 
-        self.walkable = tower_rules.get(tower_type, {}).get('land_ok', True) #fetch rule for if tower can be placed on land
-        self.waterable = tower_rules.get(tower_type, {}).get('water_ok', False) #fetch rule for if tower can be placed on water
-        self.snowable = tower_rules.get(tower_type, {}).get('snow_ok', False) #fetch rule for if tower can be placed on snow
+        self.walkable = tower_rules.get(tower_type, {}).get("land_ok", True) #fetch rule for if tower can be placed on land
+        self.waterable = tower_rules.get(tower_type, {}).get("water_ok", False) #fetch rule for if tower can be placed on water
+        self.snowable = tower_rules.get(tower_type, {}).get("snow_ok", False) #fetch rule for if tower can be placed on snow
 
+        #print stats of current tower
         print(f"Placing mode active for {tower_type} [can walk: {self.walkable} | can swim: {self.waterable} | can snow: {self.snowable}]")
 
     def next_wave(self):
@@ -81,50 +102,51 @@ class Game:
                 self.prepare_wave()
                 self.wave_active = True
             else:
-                print('no more waves')
+                print("no more waves")
 
     def import_assets(self):
         self.tmx_maps = { #import map from data folder
-            'nz': load_pygame(join('Unesco-game-2026', 'data','maps','newzealand.tmx'))
+            "nz": load_pygame(join("Unesco-game-2026", "data","maps","newzealand.tmx"))
             }
         
         self.tower_surfs = { #import surface textures from graphics folder
-            'timothy chalamet': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'chalamet.png')).convert_alpha(),
-            'albert einstein': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'einstein.png')).convert_alpha(),
-            'nikola tesla': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'tesla.png')).convert_alpha(),
+            "timothy chalamet": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "chalamet.png")).convert_alpha(),
+            "albert einstein": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "einstein.png")).convert_alpha(),
+            "nikola tesla": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "tesla.png")).convert_alpha(),
         }
 
         self.enemy_surfs = { #import surface textures from graphics folder
-            'jeff bezos': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'bezos.png')).convert_alpha(),
-            'donald trump': pygame.image.load(join('Unesco-game-2026', 'graphics', 'characters', 'trump.png')).convert_alpha(),
+            "jeff bezos": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "bezos.png")).convert_alpha(),
+            "donald trump": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "trump.png")).convert_alpha(),
         }
 
     def setup(self, tmx_map):
         #terrain
-        for layer in ['Terrain', 'Water', 'Snow', 'Path', 'Terrain Top']: # checks for 5 different layers, and creates tile sprites
+        for layer in ["Terrain", "Water", "Snow", "Path", "Terrain Top"]: # checks for 5 different layers, and creates tile sprites
             for x,y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 Sprite((x * TILE_SIZE, y * TILE_SIZE), surf, self.all_sprites) #create sprite for tile
 
         #objects
-        for obj in tmx_map.get_layer_by_name('Objects'):
-            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
+        for obj in tmx_map.get_layer_by_name("Objects"):
+            Sprite((obj.x, obj.y), obj.image, self.all_sprites) #create sprite for objects
 
     def prepare_wave(self): #unpacks wave tuple in config into a flatlist queue
         #check if player has beaten all waves
         if self.current_wave_idx >= len(enemy_waves):
-            print('you win')
+            print("you win")
             return
 
         current_wave_data = enemy_waves[self.current_wave_idx]
         self.spawn_q = []
 
-        #convert [('jeff bezos', 67)] into ['jeff bezos', 'jeff bezos', 'jeff bezos', ...]
+        #convert [("jeff bezos", 67)] into ["jeff bezos", "jeff bezos", "jeff bezos", ...]
 
         for enemy_type, amount in current_wave_data:
             for _ in range(amount):
                 self.spawn_q.append(enemy_type)
-
-        print(f'--- wave {self.current_wave_idx + 1} prepared; {len(self.spawn_q)} total enemies ---')
+                
+        #prints current wave + amount of enemies
+        print(f"--- wave {self.current_wave_idx + 1} prepared; {len(self.spawn_q)} total enemies ---")
     
     def check_wave_status(self): #checks if wave is cleared to progress
         if not self.wave_active: #if not active, dont check/add wave
@@ -132,7 +154,7 @@ class Game:
         #count enemies left
         enemies_alive = any(isinstance(sprite, Enemy) for sprite in self.all_sprites)
 
-        # if q is empty and no enemies onscreen, trigger wave
+        # if queue is empty and no enemies onscreen, trigger wave
         if len(self.spawn_q) == 0 and not enemies_alive:
             self.current_wave_idx += 1
             self.wave_active = False
@@ -148,11 +170,11 @@ class Game:
 
                 if event.type == pygame.MOUSEBUTTONDOWN: #if player presses a mouse button
 
-                    if event.button == 3: #if its right mb
+                    if event.button == 3 and self.placing_tower: #if its right mb (and the "placing" boolean is true)
                         self.placing_tower = False
-                        print(f'cancel place')
+                        print(f"cancel place")
 
-                    if event.button == 1 and self.placing_tower: #if its left (and the 'placing' boolean is true)
+                    if event.button == 1 and self.placing_tower: #if its left (and the "placing" boolean is true)
                         #double check it isnt ui
                         clicked_on_ui = mouse_pos[1] >= 640
                         if not clicked_on_ui: #if it isnt ui
@@ -162,10 +184,10 @@ class Game:
                             grid_y = mouse_pos[1] // TILE_SIZE
 
                             #map layers
-                            tmx_data = self.tmx_maps['nz']
-                            path_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Path'))
-                            water_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Water'))
-                            snow_idx = tmx_data.layers.index(tmx_data.get_layer_by_name('Snow'))
+                            tmx_data = self.tmx_maps["nz"]
+                            path_idx = tmx_data.layers.index(tmx_data.get_layer_by_name("Path"))
+                            water_idx = tmx_data.layers.index(tmx_data.get_layer_by_name("Water"))
+                            snow_idx = tmx_data.layers.index(tmx_data.get_layer_by_name("Snow"))
 
                             #checking if tile at point has a sprite or not
                             has_path = tmx_data.get_tile_image(grid_x, grid_y, path_idx) is not None
@@ -179,7 +201,7 @@ class Game:
                                     #print(f"Tower at: {sprite.rect.topleft} | Preview at: {self.tower_rect.topleft}")
                                     if sprite.rect.colliderect(self.tower_rect):
                                         has_tower = True
-                                        print('theres something there')
+                                        print("theres something there")
                                         break
 
                             #validation
@@ -197,13 +219,13 @@ class Game:
                             #place tower
                             if can_place:
                                 Tower((grid_x, grid_y), self.tower_type, self.active_tower_surf, self.all_sprites)
-                                self.placing_tower = False
+                                self.placing_tower = False #stop placing tower
 
             #enemy spawning
             if self.wave_active and self.waypoints and self.spawn_q:
                 self.enemy_spawn_timer += dt
                 if self.enemy_spawn_timer >= self.spawn_cooldown:
-                    #pull next enemy type out of q
+                    #pull next enemy type out of queue
                     next_enemy = self.spawn_q.pop(0)
 
                     #make enemy and feed it waypoints
@@ -214,7 +236,7 @@ class Game:
 
             #game logic
             self.all_sprites.update(dt)
-            self.display_surf.fill('black')
+            self.display_surf.fill("black")
             self.all_sprites.draw()
 
             #ghost preview for towers
@@ -241,6 +263,6 @@ class Game:
             pygame.display.update() #update display
 
 
-if __name__ == '__main__': #initialise game (failsafe; checks if isnt being called from different file)
+if __name__ == "__main__": #initialise game (failsafe; checks if isnt being called from different file)
     game = Game()
     game.run()

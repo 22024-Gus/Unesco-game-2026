@@ -21,14 +21,14 @@ tower_rules = {
 }
 
 tower_info = {
-    'timothy chalamet': {'damage': 10, 'range': 10, 'cooldown': 1},
-    'albert einstein': {'damage': 10, 'range': 10, 'cooldown': 1},
-    'nikola tesla': {'damage': 10, 'range': 10, 'cooldown': 1},
+    'timothy chalamet': {'damage': 10, 'range': 3, 'cooldown': 0.33},
+    'albert einstein': {'damage': 20, 'range': 10, 'cooldown': 1},
+    'nikola tesla': {'damage': 50, 'range': 5, 'cooldown': 3},
 }
 
 enemy_info = {
-    'jeff bezos': {'speed': 90, 'health': 28}, #bros got like 280 billion$ so 1 health per 10 bands
-    'donald trump': {'speed': 40, 'health': 34} #34 felonies, 34 health 
+    'jeff bezos': {'speed': 90, 'health': 50},
+    'donald trump': {'speed': 40, 'health': 100}
 }
 
 enemy_waves = [
