@@ -1,5 +1,5 @@
-from settings import * #importing variables, constants, etc. from settings.py ||| for next period: try to get visuals on attacks from towers, and range visual
-from pytmx.util_pygame import load_pygame #for the 
+from settings import * #importing variables, constants, etc. from settings.py
+from pytmx.util_pygame import load_pygame #for loading the Tiled map into PyGame
 from os.path import join #for importing images
 
 from sprites import Sprite, Button, Tower, Enemy #importing stuff from sprites.py
@@ -14,13 +14,18 @@ class Game:
 
         self.all_sprites = AllSprites() #sprite group for updating (see groups.py)
 
+        #notification ui
+        self.msg_text = "" #what text will be
+        self.msg_timer = 0 #how long the notification is up for
+        self.msg_colour = (255,255,255) #colour of the notification
+
         #tower attributes
         self.placing_tower = False #bool for if player is in placement mode (hover)
         self.tower_type = None #which tower they are placing
         self.active_tower_surf = None #graphic for hover/placement
 
         self.import_assets() #import assets for towers (and enemy, etc)
-        self.setup(self.tmx_maps["nz"]) #setup the map
+        self.setup(self.tmx_maps["nz"]) #setup the tiled map file and create sprites for the tiles
 
         #wave attributes
         self.waypoints = self.get_path_waypoints(self.tmx_maps["nz"]) #gather waypoints
@@ -35,11 +40,11 @@ class Game:
         self.font = pygame.font.Font(None,30) #create font for buttons
         self.ui_buttons = [ #list of buttons
 
-            Button("yo chalamet", #label
-                    100, 100, (30,670), #size/position
-                    self.font, #font
-                    self.placement, #action
-                    "timothy chalamet"), #tower type (ignored if action != self.placement)
+            Button("yo chalamet", #label: what the button will show
+                    100, 100, (30,670), #size/position: the size and position of the button
+                    self.font, #font: font used on the button
+                    self.placement, #action: toggles tower placement
+                    "timothy chalamet"), # 'tower_type': tower to be placed (ignored if action != self.placement)
 
             Button("yo einstein", 
                     100, 100, (160,670), 
@@ -56,8 +61,8 @@ class Game:
             Button("start next wave", 
                     100, 100, (770, 670), 
                     self.font, 
-                    self.next_wave, 
-                    None)
+                    self.next_wave, #action, toggles the next wave
+                    None) #ignores tower_type (because the action is self.next_wave)
         ]  
 
     def get_path_waypoints(self, tmx_map): #imports waypoints for the enemy pathfinding system
@@ -79,7 +84,11 @@ class Game:
         print(f"successfully loaded {len(waypoints)} waypoints")
 
         return waypoints
-
+    
+    def trigger_message(self, text, duration=1.0, colour=(255,255,255)):
+        self.msg_text = text
+        self.msg_timer = duration
+        self.msg_colour = colour
         
     def placement(self, tower_type): #gets triggered when some buttons are clicked 
         self.placing_tower = True
@@ -170,9 +179,16 @@ class Game:
 
                 if event.type == pygame.MOUSEBUTTONDOWN: #if player presses a mouse button
 
-                    if event.button == 3 and self.placing_tower: #if its right mb (and the "placing" boolean is true)
-                        self.placing_tower = False
-                        print(f"cancel place")
+                    if event.button == 3:
+                        if self.placing_tower: #if its right mb (and the "placing" boolean is true)
+                            self.placing_tower = False #no longer placing tower
+                            self.trigger_message("placement cancelled", 2, (230,75,75)) #notifies the user they cancelled the placement
+                        else: #if it isnt placing a tower
+                            for sprite in self.all_sprites: #check through all sprites
+                                if isinstance(sprite, Tower) and sprite.rect.collidepoint(mouse_pos): #check if the mouse is colliding with a tower
+                                    sprite.kill() #removes the tower
+                                    self.trigger_message("tower deleted", 2, (230,120,75))
+                                    break #leave loop early
 
                     if event.button == 1 and self.placing_tower: #if its left (and the "placing" boolean is true)
                         #double check it isnt ui
@@ -257,6 +273,22 @@ class Game:
             for button in self.ui_buttons:
                 button.draw(self.display_surf)
 
+            #notification messages
+            if self.placing_tower:
+                # Green/Yellow prompt to show active placement mode
+                mode_surf = self.font.render(f"PLACING: {self.tower_type.upper()} (Right-Click to Cancel)", True, (240, 220, 100))
+                self.display_surf.blit(mode_surf, (20, 20)) # Placed at top-left
+
+            # B) Temporary 1-Second Notifications
+            if self.msg_timer > 0:
+                self.msg_timer -= dt # Subtract elapsed frame time (in seconds)
+                
+                # Render and display the text
+                alert_surf = self.font.render(self.msg_text, True, self.msg_colour)
+                
+                # Center the alert horizontally near the top middle of the screen
+                text_rect = alert_surf.get_rect(center=(WIN_WID // 2, 80))
+                self.display_surf.blit(alert_surf, text_rect)
 
 
             
