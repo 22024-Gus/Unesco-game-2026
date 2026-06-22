@@ -7,15 +7,17 @@ WIN_WID, WIN_HGT = 960,800 #window size
 TILE_SIZE = 32 #tile size
 
 tower_rules = { #rules for each tower. defines where each tower can be placed.
-    'timothy chalamet': {'land_ok': True, 'water_ok': False, 'snow_ok': False},
+    'jesus christ': {'land_ok': True, 'water_ok': True, 'snow_ok': True},
     'albert einstein': {'land_ok': True, 'water_ok': False, 'snow_ok': True},
-    'nikola tesla': {'land_ok': True, 'water_ok': True, 'snow_ok': False}
+    'david attenborough': {'land_ok': True, 'water_ok': True, 'snow_ok': False},
+    'michael jackson': {'land_ok': True, 'water_ok': False, 'snow_ok': False}
 }
 
 tower_info = { #stats for each tower. defines range, damage, and cooldown between attacks.
-    'timothy chalamet': {'damage': 10, 'range': 4, 'cooldown': 0.33},
-    'albert einstein': {'damage': 20, 'range': 7, 'cooldown': 1},
-    'nikola tesla': {'damage': 50, 'range': 3, 'cooldown': 3},
+    'jesus christ': {'damage': 100, 'range': 20, 'cooldown': 10},
+    'albert einstein': {'damage': 10, 'range': 3, 'cooldown': 0.5},
+    'david attenborough': {'damage': 20, 'range': 5, 'cooldown': 1.5},
+    'michael jackson': {'damage': 50, 'range': 5, 'cooldown': 3},
 }
 
 enemy_info = { #stats for enemy towers. defines speed and health.

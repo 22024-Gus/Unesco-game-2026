@@ -40,11 +40,11 @@ class Game:
         self.font = pygame.font.Font(None,30) #create font for buttons
         self.ui_buttons = [ #list of buttons
 
-            Button("yo chalamet", #label: what the button will show
+            Button("yo attenborough", #label: what the button will show
                     100, 100, (30,670), #size/position: the size and position of the button
                     self.font, #font: font used on the button
                     self.placement, #action: toggles tower placement
-                    "timothy chalamet"), # 'tower_type': tower to be placed (ignored if action != self.placement)
+                    "david attenborough"), # 'tower_type': tower to be placed (ignored if action != self.placement)
 
             Button("yo einstein", 
                     100, 100, (160,670), 
@@ -52,11 +52,17 @@ class Game:
                     self.placement, 
                     "albert einstein"),
                     
-            Button("yo nikola", 
+            Button("yo jackson", 
                     100, 100, (290,670), 
                     self.font, 
                     self.placement, 
-                    "nikola tesla"),
+                    "michael jackson"),
+
+            Button("yo jesus", 
+                    100, 100, (420,670), 
+                    self.font, 
+                    self.placement, 
+                    "jesus christ"),
 
             Button("start next wave", 
                     100, 100, (770, 670), 
@@ -119,9 +125,10 @@ class Game:
             }
         
         self.tower_surfs = { #import surface textures from graphics folder
-            "timothy chalamet": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "chalamet.png")).convert_alpha(),
+            "david attenborough": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "attenborough.png")).convert_alpha(),
             "albert einstein": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "einstein.png")).convert_alpha(),
-            "nikola tesla": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "tesla.png")).convert_alpha(),
+            "michael jackson": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "jackson.png")).convert_alpha(),
+            "jesus christ": pygame.image.load(join("Unesco-game-2026", "graphics", "characters", "jesus.png")).convert_alpha(),
         }
 
         self.enemy_surfs = { #import surface textures from graphics folder
@@ -171,6 +178,7 @@ class Game:
     def run(self):
         while True:
             dt = self.clock.tick() / 1000
+            mouse_pos = pygame.mouse.get_pos()
             #event loop
             for event in pygame.event.get(): #check for pygame events
                 if event.type == pygame.QUIT: #if player closes main window:
@@ -195,7 +203,6 @@ class Game:
                         clicked_on_ui = mouse_pos[1] >= 640
                         if not clicked_on_ui: #if it isnt ui
                             #calculate grid position
-                            #mouse_pos = pygame.mouse.get_pos()
                             grid_x = mouse_pos[0] // TILE_SIZE
                             grid_y = mouse_pos[1] // TILE_SIZE
 
@@ -276,7 +283,7 @@ class Game:
             #notification messages
             if self.placing_tower:
                 # Green/Yellow prompt to show active placement mode
-                mode_surf = self.font.render(f"PLACING: {self.tower_type.upper()} (Right-Click to Cancel)", True, (240, 220, 100))
+                mode_surf = self.font.render(f"PLACING: {self.tower_type.title()} (Right-Click to Cancel)", True, (175, 125, 200))
                 self.display_surf.blit(mode_surf, (20, 20)) # Placed at top-left
 
             # B) Temporary 1-Second Notifications
@@ -287,7 +294,7 @@ class Game:
                 alert_surf = self.font.render(self.msg_text, True, self.msg_colour)
                 
                 # Center the alert horizontally near the top middle of the screen
-                text_rect = alert_surf.get_rect(center=(WIN_WID // 2, 80))
+                text_rect = alert_surf.get_rect(center=(WIN_WID // 2, 50))
                 self.display_surf.blit(alert_surf, text_rect)
 
 
