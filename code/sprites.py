@@ -97,14 +97,16 @@ class Tower(pygame.sprite.Sprite):
         print(f"[{self.tower_type.title()}] shot {target.enemy_type.title()}, Remaining HP: {target.health}")
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, waypoints, enemy_type, surf, groups):
+    def __init__(self, waypoints, enemy_type, surf, groups, game_ref):
         super().__init__(groups)
+        self.game = game_ref
         self.image = surf
         self.enemy_type = enemy_type
 
-        stats = enemy_info.get(enemy_type, {'speed': 60, 'health': 10}) #collects info from settings.py, resorts to default config if cant find
+        stats = enemy_info.get(enemy_type, {'speed': 50, 'health': 10, 'reward': 10}) #collects info from settings.py, resorts to default config if cant find
         self.speed = stats['speed']
         self.health = stats['health']
+        self.reward = stats['reward']
 
         self.rect = self.image.get_frect(center=waypoints[0]) #set center to first waypoint
         self.waypoints = waypoints #for use in other functions
@@ -115,6 +117,7 @@ class Enemy(pygame.sprite.Sprite):
     def update(self, dt):
         #death monitor
         if self.health <= 0:
+            self.game.money += self.reward
             self.kill()
             return
 

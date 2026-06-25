@@ -8,7 +8,7 @@ from groups import AllSprites #importing from groups.py
 class Game:
     def __init__(self):
         pygame.init()
-        self.display_surf = pygame.display.set_mode((WIN_WID, WIN_HGT)) #setting resolution of window
+        self.root = pygame.display.set_mode((WIN_WID, WIN_HGT)) #setting resolution of window
         pygame.display.set_caption("epic game") #sets caption of game window
         self.clock = pygame.time.Clock() #start game clock
 
@@ -36,36 +36,37 @@ class Game:
         #enemy attributes
         self.enemy_spawn_timer = 0 #timer that resets when spawn
         self.spawn_cooldown = 1.5 #time (in secs) between enemy spawns
-        
-        self.font = pygame.font.Font(None,30) #create font for buttons
+
+        self.money = 250 #money player styarts with
+        self.font = pygame.font.Font(None,22) #create font for buttons
         self.ui_buttons = [ #list of buttons
 
-            Button("yo attenborough", #label: what the button will show
-                    100, 100, (30,670), #size/position: the size and position of the button
+            Button("David Attenbo.\n$100", #label: what the button will show
+                    120, 120, (30,670), #size/position: the size and position of the button
                     self.font, #font: font used on the button
                     self.placement, #action: toggles tower placement
                     "david attenborough"), # 'tower_type': tower to be placed (ignored if action != self.placement)
 
-            Button("yo einstein", 
-                    100, 100, (160,670), 
+            Button("Albert Einstein\n$150", 
+                    120, 120, (180,670), 
                     self.font, 
                     self.placement, 
                     "albert einstein"),
                     
-            Button("yo jackson", 
-                    100, 100, (290,670), 
+            Button("Michael Jackson\n$200", 
+                    120, 120, (330,670), 
                     self.font, 
                     self.placement, 
                     "michael jackson"),
 
-            Button("yo jesus", 
-                    100, 100, (420,670), 
+            Button("Jesus H. Christ\n$500", 
+                    120, 120, (490,670), 
                     self.font, 
                     self.placement, 
                     "jesus christ"),
 
             Button("start next wave", 
-                    100, 100, (770, 670), 
+                    120, 120, (770, 670), 
                     self.font, 
                     self.next_wave, #action, toggles the next wave
                     None) #ignores tower_type (because the action is self.next_wave)
@@ -161,8 +162,8 @@ class Game:
             for _ in range(amount):
                 self.spawn_q.append(enemy_type)
                 
-        #prints current wave + amount of enemies
-        print(f"--- wave {self.current_wave_idx + 1} prepared; {len(self.spawn_q)} total enemies ---")
+        #shows current wave + amount of enemies
+        self.trigger_message(f"--- wave {self.current_wave_idx + 1} prepared; {len(self.spawn_q)} total enemies ---", 3, (100, 150, 240))
     
     def check_wave_status(self): #checks if wave is cleared to progress
         if not self.wave_active: #if not active, dont check/add wave
@@ -186,9 +187,8 @@ class Game:
                     exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN: #if player presses a mouse button
-
-                    if event.button == 3:
-                        if self.placing_tower: #if its right mb (and the "placing" boolean is true)
+                    if event.button == 3: #if its right mb 
+                        if self.placing_tower: #if the "placing" boolean is true
                             self.placing_tower = False #no longer placing tower
                             self.trigger_message("placement cancelled", 2, (230,75,75)) #notifies the user they cancelled the placement
                         else: #if it isnt placing a tower
@@ -224,11 +224,13 @@ class Game:
                                     #print(f"Tower at: {sprite.rect.topleft} | Preview at: {self.tower_rect.topleft}")
                                     if sprite.rect.colliderect(self.tower_rect):
                                         has_tower = True
-                                        print("theres something there")
                                         break
+                            
+                            tower_cost = tower_info.get(self.tower_type, {}).get('cost', 100)
 
                             #validation
                             can_place = True
+
 
                             if has_tower: #checks for existing towers, uses the grid occupation logic just above
                                 can_place = False
@@ -238,10 +240,14 @@ class Game:
                                 can_place = False
                             elif has_snow and not self.snowable: #checks using has_snow (if there is a sprite on snow layer), matches with tower rules
                                 can_place = False
+                            elif self.money < tower_cost:
+                                can_place = False
+                                self.trigger_message("you're broke", 1, (180, 230, 120))
 
                             #place tower
                             if can_place:
                                 Tower((grid_x, grid_y), self.tower_type, self.active_tower_surf, self.all_sprites)
+                                self.money -= tower_cost
                                 self.placing_tower = False #stop placing tower
 
             #enemy spawning
@@ -252,14 +258,14 @@ class Game:
                     next_enemy = self.spawn_q.pop(0)
 
                     #make enemy and feed it waypoints
-                    Enemy(self.waypoints, next_enemy, self.enemy_surfs[next_enemy], self.all_sprites)
+                    Enemy(self.waypoints, next_enemy, self.enemy_surfs[next_enemy], self.all_sprites, self)
                     self.enemy_spawn_timer = 0 #reset timer
 
             self.check_wave_status()
 
             #game logic
             self.all_sprites.update(dt)
-            self.display_surf.fill("black")
+            self.root.fill("black")
             self.all_sprites.draw()
 
             #ghost preview for towers
@@ -273,29 +279,33 @@ class Game:
                     #update tower rect for collision detect
                     self.tower_rect.topleft = (snap_x, snap_y)
                     #show tower for real
-                    self.display_surf.blit(self.active_tower_surf, (snap_x, snap_y))
+                    self.root.blit(self.active_tower_surf, (snap_x, snap_y))
 
+
+            #money text
+            money_surf = self.font.render(f"wallet: ${self.money}", True, (100, 175, 80))
+            self.root.blit(money_surf, (830, 20))
 
             #buttons
             for button in self.ui_buttons:
-                button.draw(self.display_surf)
+                button.draw(self.root)    
 
             #notification messages
             if self.placing_tower:
-                # Green/Yellow prompt to show active placement mode
+                #greeny-yellow prompt to show active placement mode
                 mode_surf = self.font.render(f"PLACING: {self.tower_type.title()} (Right-Click to Cancel)", True, (175, 125, 200))
-                self.display_surf.blit(mode_surf, (20, 20)) # Placed at top-left
+                self.root.blit(mode_surf, (20, 20)) # Placed at top-left
 
-            # B) Temporary 1-Second Notifications
+            #temporary 1-Second Notifications
             if self.msg_timer > 0:
-                self.msg_timer -= dt # Subtract elapsed frame time (in seconds)
+                self.msg_timer -= dt #subtract elapsed frame time (in seconds)
                 
-                # Render and display the text
+                #render text
                 alert_surf = self.font.render(self.msg_text, True, self.msg_colour)
                 
-                # Center the alert horizontally near the top middle of the screen
+                #center the alert horizontally, top middle of the screen
                 text_rect = alert_surf.get_rect(center=(WIN_WID // 2, 50))
-                self.display_surf.blit(alert_surf, text_rect)
+                self.root.blit(alert_surf, text_rect)
 
 
             
