@@ -41,23 +41,23 @@ class Game:
         self.font = pygame.font.Font(None,22) #create font for buttons
         self.ui_buttons = [ #list of buttons
 
-            Button("David Attenbo.\n$100", #label: what the button will show
+            Button("Michael Jackson\n$100", #label: what the button will show
                     120, 120, (30,670), #size/position: the size and position of the button
                     self.font, #font: font used on the button
                     self.placement, #action: toggles tower placement
-                    "david attenborough"), # 'tower_type': tower to be placed (ignored if action != self.placement)
+                    "michael jackson"), # 'tower_type': tower to be placed (ignored if action != self.placement)
 
             Button("Albert Einstein\n$150", 
                     120, 120, (180,670), 
                     self.font, 
                     self.placement, 
                     "albert einstein"),
-                    
-            Button("Michael Jackson\n$200", 
-                    120, 120, (330,670), 
-                    self.font, 
-                    self.placement, 
-                    "michael jackson"),
+
+            Button("David Attenbo.\n$200",
+                    120, 120, (330,670),
+                    self.font,
+                    self.placement,
+                    "david attenborough"),
 
             Button("Jesus H. Christ\n$500", 
                     120, 120, (490,670), 

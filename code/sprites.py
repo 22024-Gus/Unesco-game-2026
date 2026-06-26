@@ -110,14 +110,20 @@ class Enemy(pygame.sprite.Sprite):
 
         self.rect = self.image.get_frect(center=waypoints[0]) #set center to first waypoint
         self.waypoints = waypoints #for use in other functions
-        self.current_wypnt_idx = 1 #if wypnt idx was 0, they would stall (distance would be 0, stuck etc.)
+        self.current_wypnt_idx = 1 #if wypnt idx was 0, they would stall (distance would be 0, stuck.)
 
         self.pos = pygame.Vector2(self.rect.center)
 
     def update(self, dt):
         #death monitor
         if self.health <= 0:
-            self.game.money += self.reward
+            self.game.money += self.reward #add reward to player's wallet
+
+            particle_colour = random.choice(particle_colours) #random color
+                
+            for _ in range(15): #spawn 15 small particles
+                DeathParticle(self.rect.center, particle_colour, self.groups())
+
             self.kill()
             return
 
@@ -144,3 +150,30 @@ class Enemy(pygame.sprite.Sprite):
         #if close to target point, switch to next wypnt
         if distance < 2:
             self.current_wypnt_idx += 1
+
+
+class DeathParticle(pygame.sprite.Sprite):
+    def __init__(self, pos, colour, groups):
+        super().__init__(groups)
+        self.image = pygame.Surface((6, 6)) #create a little surface and fill as colour
+        self.image.fill(colour)
+        self.rect = self.image.get_frect(center=pos) #set position to center
+
+        #generate a random burst
+        self.direction = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1))
+        if self.direction.length() > 0:
+            self.direction = self.direction.normalize() #normalise
+
+        self.speed = random.randint(80, 120)
+        self.pos = pygame.Vector2(self.rect.center)
+        self.lifetime = random.uniform(0.2, 0.4)
+
+    def update(self, dt):
+        self.lifetime -= dt
+        if self.lifetime <= 0:
+            self.kill()
+            return
+
+        #move outward
+        self.pos += self.direction * self.speed * dt
+        self.rect.center = self.pos
