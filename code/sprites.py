@@ -119,7 +119,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.health <= 0:
             self.game.money += self.reward #add reward to player's wallet
 
-            particle_colour = random.choice(particle_colours) #random color
+            particle_colour = random.choice(particle_colours) #red color
                 
             for _ in range(15): #spawn 15 small particles
                 DeathParticle(self.rect.center, particle_colour, self.groups())
